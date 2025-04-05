@@ -40,7 +40,21 @@ public class CreateWalletTest extends BaseTest {
         logger.info("Choose Passkey page verified");
 
         WalletHomePage walletHomePage = choosePasskeyPage.clickSecretPhraseCreate();
-        Assert.assertTrue(walletHomePage.isPageDisplayed(), "Wallet Home page is not displayed after creation.");
+        
+        // The isPageDisplayed method now includes handling of any web survey redirection
+        // but we can add an explicit check here for visibility in the test
+        if (!walletHomePage.isPageDisplayed()) {
+            logger.info("Wallet home page not immediately displayed, checking for redirections");
+            // Try checking specifically for web survey redirect
+            boolean handled = walletHomePage.handleWebSurveyRedirectIfPresent();
+            if (handled) {
+                logger.info("Web survey redirection was detected and handled");
+            }
+            // Verify wallet home page is now displayed after handling any redirections
+            Assert.assertTrue(walletHomePage.isPageDisplayed(), 
+                "Wallet Home page is not displayed after handling redirections");
+        }
+        
         logger.info("Wallet Home page verified");
 
         // Assert default wallet name is correct
