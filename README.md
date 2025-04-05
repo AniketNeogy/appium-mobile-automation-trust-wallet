@@ -33,28 +33,37 @@ From the Automation scope defined in `test-coverage-summary.md`, the following t
 │   │   ├── java
 │   │   │   └── com/trustwallet/automation
 │   │   │       ├── base
-│   │   │       │   ├── BaseDriver.java
-│   │   │       │   └── BasePage.java
+│   │   │       │   ├── BaseDriver.java         # Driver initialization and configuration
+│   │   │       │   └── BasePage.java           # Common page object methods and waits
 │   │   │       ├── pages
-│   │   │       │   └── LoginPage.java
+│   │   │       │   ├── ChoosePasskeyPage.java  # Choose passkey/secret phrase page
+│   │   │       │   ├── ManageWalletsPage.java  # Wallet management page 
+│   │   │       │   ├── PasscodePage.java       # Passcode creation/entry page
+│   │   │       │   ├── SetWalletNamePage.java  # Wallet naming page
+│   │   │       │   ├── SwiftQuizPage.java      # Quiz verification for Swift wallets
+│   │   │       │   ├── SwiftSafetyTipsPage.java # Safety tips for Swift wallets
+│   │   │       │   ├── WalletHomePage.java     # Main wallet dashboard
+│   │   │       │   └── WelcomePage.java        # Initial welcome screen
 │   │   │       └── utils
-│   │   │           ├── TestListener.java
-│   │   │           └── TestUtils.java
+│   │   │           ├── ExtentReportManager.java # HTML report generation
+│   │   │           ├── TestListener.java        # TestNG listener for reporting
+│   │   │           └── TestUtils.java           # Common test utilities
 │   │   └── resources
-│   │       └── log4j2.xml
+│   │       └── log4j2.xml                      # Logging configuration
 │   └── test
 │       ├── java
 │       │   └── com/trustwallet/automation
 │       │       └── tests
-│       │           └── LoginTest.java
+│       │           ├── BaseTest.java           # Test setup and teardown
+│       │           └── CreateWalletTest.java   # Wallet creation test cases
 │       └── resources
-│           └── config.properties
+│           └── config.properties               # Test configuration
 ├── test-cases
-│   ├── create-wallet-test-cases.md
-│   └── test-coverage-summary.md
-├── pom.xml
-├── testng.xml
-└── README.md
+│   ├── create-wallet-test-cases.md             # Detailed test cases
+│   └── test-coverage-summary.md                # Test coverage overview
+├── pom.xml                                     # Maven dependencies
+├── testng.xml                                  # TestNG configuration
+└── README.md                                   # Project documentation
 ```
 
 ## Framework Improvements
@@ -66,6 +75,8 @@ This framework includes the following enhancements to the original sample:
 3. **Better Error Handling**: More robust error handling in page methods
 4. **Code Organization**: Cleaner code structure with consistent documentation
 5. **Performance Optimization**: Reduced test execution time
+6. **Enhanced Reporting**: Implemented ExtentReports for detailed HTML test reports with screenshots
+7. **Logging**: Configured Log4j2 for comprehensive application logging
 
 ## APK Handling
 
@@ -236,19 +247,46 @@ When using Appium Inspector to identify elements:
 
 ## Reporting
 
+The framework features an advanced reporting system using ExtentReports:
+
+- **HTML Reports**: Detailed interactive HTML reports with test status, execution time, and environment info
+- **Failure Screenshots**: Automatic capture of screenshots on test failures
+- **Visual Test Status**: Color-coded test results (green for pass, red for fail)
+- **Error Details**: Full stack traces and error messages for failed tests
+- **Test Logs**: Chronological logs of test actions and verifications
+
+### Viewing Reports
+
 After test execution, you can find test reports in:
-- `target/surefire-reports/`: TestNG HTML reports
-- `screenshots/`: Screenshots taken during test failures
 
-## Creating New Tests (For Create Wallet Flow)
+- **Test Reports**:
+  - HTML Report: `test-output/ExtentReport.html` (Open in any web browser)
+  - TestNG Reports: `target/surefire-reports/` (TestNG HTML reports)
+- **Screenshots**:
+  - Failure Screenshots: `screenshots/` (Named with test name and timestamp)
+  
+To view the ExtentReport:
+```bash
+# Windows
+start test-output\ExtentReport.html
 
-1.  Create Page Objects for Create Wallet screens (e.g., `WelcomePage`, `PasscodePage`, `CreateOptionsPage`, `SwiftQuizPage`, `WalletHomePage`).
-2.  Create TestNG test classes (e.g., `CreateWalletTest`).
-3.  Implement `@Test` methods for automation candidates.
-4.  Add new test classes to `testng.xml`.
+# Mac/Linux
+open test-output/ExtentReport.html
+```
 
-## Framework Features & Best Practices
+The report includes:
+- Dashboard with test summary statistics
+- Detailed test case information with passed/failed steps
+- Screenshots for failed tests
+- Environment information
+- System logs with timestamps
 
--   Page Object Model, Cross-platform base, TestNG, Maven, Log4j2, Screenshot on failure.
--   Separate concerns, use explicit waits, descriptive logging, parameterize configs.
+### Report Samples
 
+Below are screenshots showing how the Extent Reports look:
+
+#### Dashboard View
+![Extent Report Dashboard](artefacts/screencapture-ExtentReport-html-2025-04-06-02_44_54.png)
+
+#### Test Details View
+![Extent Report Test Details](artefacts/screencapture-ExtentReport-html-2025-04-06-02_45_02.png)

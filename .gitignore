@@ -51,3 +51,4 @@ failure_screenshots/*
 failure*.png
 window_dump.xml
 *.png 
+test-output/ExtentReport.html

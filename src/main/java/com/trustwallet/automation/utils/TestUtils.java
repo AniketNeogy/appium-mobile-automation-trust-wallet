@@ -23,8 +23,15 @@ public class TestUtils {
      * @return Path to the screenshot file
      */
     public static String takeScreenshot(AppiumDriver driver, String screenshotName) {
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String fileName = screenshotName + "_" + timestamp + ".png";
+        String timestamp = getCurrentDateTime("yyyyMMdd_HHmmss");
+        String fileName = screenshotName;
+        
+        // Add timestamp if not already included in the name
+        if (!screenshotName.contains(timestamp)) {
+            fileName = screenshotName + "_" + timestamp;
+        }
+        fileName += ".png";
+        
         String directory = "screenshots/";
         File directory_path = new File(directory);
         
