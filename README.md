@@ -287,10 +287,10 @@ Below are screenshots showing how the Extent Reports look:
 
 <div align="left">
     <p><strong>Dashboard View</strong></p>
-    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_44_54.png" width="700px"</img>
+    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_44_54.png" width="400px"</img>
 </div>
 <br/>
 <div align="left">
     <p><strong>Test Details View</strong></p>
-    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_45_02.png" width="700px"</img>
+    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_45_02.png" width="400px"</img>
 </div>
