@@ -160,7 +160,7 @@ This framework includes the following enhancements to the original sample:
 3. **Configure the Application Properties**
    - Update `src/test/resources/config.properties` with your device details:
      ```
-     appium.url=http://127.0.0.1:4723/wd/hub
+     appium.url=http://127.0.0.1:5/wd/hub
      platform.name=Android
      device.name=emulator-5554
      app.path=./apk/trust-wallet-latest.apk
@@ -184,11 +184,11 @@ This framework includes the following enhancements to the original sample:
 2. **Start Appium Server**
    - Using Command Line:
      ```
-     appium server -p 4723 -a 127.0.0.1 -pa /wd/hub
+     appium -p 4725 -a 127.0.0.1 --base-path /wd/hub
      ```
    - Or using Appium Desktop:
      - Open Appium Desktop
-     - Set host to 0.0.0.0 and port to 4723
+     - Set host to 0.0.0.0 and port to 4725
      - Click "Start Server"
 
 3. **Run Tests**
@@ -220,7 +220,7 @@ This framework includes the following enhancements to the original sample:
 When using Appium Inspector to identify elements:
 
 1. Set Remote Host: `127.0.0.1`
-2. Set Port: `4723`
+2. Set Port: `4725`
 3. Set Path: `/wd/hub`
 4. Configure Capabilities:
    ```json
