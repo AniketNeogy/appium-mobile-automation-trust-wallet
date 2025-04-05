@@ -285,12 +285,12 @@ The report includes:
 
 Below are screenshots showing how the Extent Reports look:
 
-<div align="center">
+<div align="left">
     <p><strong>Dashboard View</strong></p>
-    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_44_54.png" width="700px" alt="Dashboard View" />
+    <img src="project-artefacts/screencapture-ExtentReport-html-2025-04-06-02_44_54.png" width="700px" alt="Dashboard View" />
 </div>
 
-<div align="center">
+<div align="left">
     <p><strong>Test Details View</strong></p>
-    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_45_02.png" width="700px" alt="Test Details View" />
+    <img src="project-artefacts/screencapture-ExtentReport-html-2025-04-06-02_45_02.png" width="700px" alt="Test Details View" />
 </div>
