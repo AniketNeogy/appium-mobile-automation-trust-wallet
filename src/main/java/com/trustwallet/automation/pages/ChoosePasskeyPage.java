@@ -6,9 +6,12 @@ import io.appium.java_client.AppiumDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.NoSuchElementException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 // Renamed from CreateOptionsPage
 public class ChoosePasskeyPage extends BasePage {
+    private static final Logger logger = LogManager.getLogger(ChoosePasskeyPage.class);
 
     // Locators
     private final By pageTitle = AppiumBy.androidUIAutomator("new UiSelector().text(\"Create new wallet\")");
@@ -31,6 +34,7 @@ public class ChoosePasskeyPage extends BasePage {
 
     public ChoosePasskeyPage(AppiumDriver driver) {
         super(driver);
+        logger.debug("ChoosePasskeyPage initialized");
     }
 
     /**
@@ -41,8 +45,10 @@ public class ChoosePasskeyPage extends BasePage {
     public boolean isPageDisplayed() {
         try {
             waitForElementToBeVisible(driver.findElement(pageTitle));
+            logger.debug("Choose Passkey page is displayed");
             return true;
         } catch (Exception e) {
+            logger.error("Choose Passkey page is not displayed", e);
             return false;
         }
     }
@@ -52,7 +58,7 @@ public class ChoosePasskeyPage extends BasePage {
      */
     public void expandSecretPhraseDetails() {
         if (isElementPresent(secretPhraseShowDetails)) {
-            System.out.println("Expanding Secret Phrase details...");
+            logger.debug("Expanding Secret Phrase details");
             WebElement button = driver.findElement(secretPhraseItemIcon);
             click(button);
         }
@@ -63,7 +69,7 @@ public class ChoosePasskeyPage extends BasePage {
      */
     public void expandSwiftDetails() {
         if (isElementPresent(secretPhraseShowDetails)) {
-            System.out.println("Expanding Swift details...");
+            logger.debug("Expanding Swift details");
             WebElement button = driver.findElement(swiftItemIcon);
             click(button);
         }
@@ -76,19 +82,52 @@ public class ChoosePasskeyPage extends BasePage {
      * @return A new instance of WalletHomePage.
      */
     public WalletHomePage clickSecretPhraseCreate() {
-        System.out.println("Clicking 'Create' for Secret Phrase...");
+        logger.info("Clicking 'Create' for Secret Phrase");
         WebElement button = null;
         
         try {
-            System.out.println("Trying direct resource ID locator...");
+            logger.debug("Trying direct resource ID locator");
             button = waitForElementToBeClickable(secretPhraseCreateButton);
         } catch (Exception e) {
-            System.out.println("Primary locator failed, trying text locator...");
+            logger.debug("Primary locator failed, trying text locator");
             button = waitForElementToBeClickable(secretPhraseCreateButtonAlt);
         }
         
         click(button);
+        
+        // Check for the What's New popup before returning the WalletHomePage
+        dismissWhatsNewPopupIfPresent();
+        
         return new WalletHomePage(driver);
+    }
+
+    /**
+     * Checks for and dismisses the "What's New" survey popup that might appear
+     * after clicking create wallet button.
+     */
+    private void dismissWhatsNewPopupIfPresent() {
+        try {
+            // Wait a short time for the popup to appear (if it's going to)
+            Thread.sleep(3000);
+            
+            // Check if the popup is present
+            By whatsNewTitle = AppiumBy.androidUIAutomator("new UiSelector().text(\"What's New\")");
+            By getStartedButton = AppiumBy.androidUIAutomator("new UiSelector().text(\"GET STARTED\")");
+            
+            if (isElementPresent(whatsNewTitle)) {
+                logger.info("\"What's New\" popup detected. Dismissing it");
+                
+                // Click the GET STARTED button to dismiss the popup
+                WebElement startButton = driver.findElement(getStartedButton);
+                click(startButton);
+                logger.debug("Successfully dismissed the \"What's New\" popup");
+                
+                // Wait for the popup to be dismissed
+                Thread.sleep(1000);
+            }
+        } catch (Exception e) {
+            logger.debug("No \"What's New\" popup detected or error dismissing it: {}", e.getMessage());
+        }
     }
 
     /**
@@ -97,7 +136,7 @@ public class ChoosePasskeyPage extends BasePage {
      * @return A new instance of SwiftSafetyTipsPage.
      */
     public SwiftSafetyTipsPage clickSwiftCreate() {
-        System.out.println("Clicking 'Create' for Swift...");
+        logger.info("Clicking 'Create' for Swift");
         WebElement button = waitForElementToBeClickable(swiftCreateButton);
         click(button);
         return new SwiftSafetyTipsPage(driver);
@@ -109,10 +148,9 @@ public class ChoosePasskeyPage extends BasePage {
      * @return A new instance of WelcomePage (adjust if navigation leads elsewhere).
      */
     public WelcomePage clickBackButton() {
-        System.out.println("Clicking the back button...");
+        logger.info("Clicking the back button");
         WebElement button = waitForElementToBeClickable(backButton);
         click(button);
-        // Assuming back leads to WelcomePage, adjust if necessary
         return new WelcomePage(driver);
     }
 } 

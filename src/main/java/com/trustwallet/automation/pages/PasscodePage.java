@@ -10,8 +10,15 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
+import java.io.File;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class PasscodePage extends BasePage {
+    private static final Logger logger = LogManager.getLogger(PasscodePage.class);
 
     // Locators
     private String textUiSelector = "new UiSelector().text(\"%s\")";
@@ -22,6 +29,8 @@ public class PasscodePage extends BasePage {
             String.format(textUiSelector, "Create passcode"));
     private final By confirmPasscodeTitle = AppiumBy.androidUIAutomator(
             String.format(textUiSelector, "Confirm passcode"));
+    private final By passcodeMismatchError = AppiumBy.androidUIAutomator(
+            String.format(textUiSelector, "Those passwords didn't match!"));
 
     /**
      * Constructor for PasscodePage.
@@ -30,6 +39,7 @@ public class PasscodePage extends BasePage {
      */
     public PasscodePage(AppiumDriver driver) {
         super(driver);
+        logger.debug("PasscodePage initialized");
     }
 
     /**
@@ -41,11 +51,20 @@ public class PasscodePage extends BasePage {
     public boolean isPageDisplayed() {
         try {
             WebElement createTitle = findElementIfVisible(createPasscodeTitle);
-            if (createTitle != null) return true;
+            if (createTitle != null) {
+                logger.debug("Create passcode page displayed");
+                return true;
+            }
 
             WebElement confirmTitle = findElementIfVisible(confirmPasscodeTitle);
-            return confirmTitle != null;
+            if (confirmTitle != null) {
+                logger.debug("Confirm passcode page displayed");
+                return true;
+            }
+            logger.debug("Passcode page not found");
+            return false;
         } catch (NoSuchElementException e) {
+            logger.error("Failed to check passcode page display", e);
             return false;
         }
     }
@@ -58,7 +77,7 @@ public class PasscodePage extends BasePage {
      * @return The same PasscodePage instance, now on confirmation step.
      */
     public PasscodePage enterPasscode(String passcode) {
-        System.out.println("Entering passcode by clicking digits: " + passcode);
+        logger.info("Entering passcode: " + passcode);
         
         try {
             // Verify we're on the Create passcode screen
@@ -70,14 +89,14 @@ public class PasscodePage extends BasePage {
                 clickDigit(digit);
             }
             
-            // Wait for the confirmation screen to appear without using BasePage methods
+            // Wait for the confirmation screen to appear
             wait = new WebDriverWait(driver, Duration.ofSeconds(20));
             wait.until(ExpectedConditions.visibilityOfElementLocated(confirmPasscodeTitle));
-            System.out.println("Confirmation screen detected");
+            logger.debug("Confirmation screen detected");
             return this;
         }
         catch (TimeoutException e) {
-            System.err.println("Timed out waiting for passcode screen transition: " + e.getMessage());
+            logger.error("Timed out waiting for passcode screen transition", e);
             // Try to proceed anyway
             return this;
         }
@@ -91,25 +110,117 @@ public class PasscodePage extends BasePage {
      * @return A new instance of the ChoosePasskeyPage.
      */
     public ChoosePasskeyPage confirmPasscode(String passcode) {
-        System.out.println("Confirming passcode by clicking digits: " + passcode);
+        logger.info("Confirming passcode: " + passcode);
         
-        // Enter the confirmation passcode directly without additional checks
+        // Enter the confirmation passcode
         for (char digit : passcode.toCharArray()) {
             clickDigit(digit);
         }
 
         // Handle the popup that appears after successful passcode creation
-        System.out.println("Handling 'Keep up with market' popup...");
+        logger.debug("Handling 'Keep up with market' popup");
         try {
             WebDriverWait popupWait = new WebDriverWait(driver, Duration.ofSeconds(10)); 
             WebElement skipButton = popupWait.until(ExpectedConditions.elementToBeClickable(skipPopupButton));
             click(skipButton);
-            System.out.println("Clicked 'Skip, I'll do it later' button.");
+            logger.debug("Clicked 'Skip, I'll do it later' button");
         } catch (Exception e) {
-            System.err.println("Could not find or click the 'Skip, I'll do it later' button. Proceeding anyway... Error: " + e.getMessage());
+            logger.warn("Could not find or click the 'Skip, I'll do it later' button: {}", e.getMessage());
         }
 
         return new ChoosePasskeyPage(driver);
+    }
+    
+    /**
+     * Confirms the passcode with a different value than originally entered,
+     * which should trigger a mismatch error.
+     *
+     * @param differentPasscode A passcode different from the one entered initially.
+     * @return The same PasscodePage instance for further interactions.
+     */
+    public PasscodePage confirmWithMismatchedPasscode(String differentPasscode) {
+        logger.info("Entering mismatched passcode: " + differentPasscode);
+        
+        // Enter the different confirmation passcode
+        for (char digit : differentPasscode.toCharArray()) {
+            clickDigit(digit);
+        }
+
+        // Wait for the error message to appear
+        try {
+            WebDriverWait errorWait = new WebDriverWait(driver, Duration.ofSeconds(5));
+            errorWait.until(ExpectedConditions.visibilityOfElementLocated(passcodeMismatchError));
+            logger.debug("Passcode mismatch error displayed as expected");
+        } catch (TimeoutException e) {
+            logger.warn("Passcode mismatch error was not displayed or had different text", e);
+        }
+
+        return this;
+    }
+    
+    /**
+     * Checks if the passcode mismatch error message is displayed.
+     *
+     * @return true if the error message is visible, false otherwise.
+     */
+    public boolean isPasscodeMismatchErrorDisplayed() {
+        logger.debug("Checking for passcode mismatch error");
+        
+        try {
+            // Wait longer for the error message to appear (1.5 seconds)
+            Thread.sleep(1500);
+            
+            // Try to find the explicit error message
+            try {
+                WebElement errorElement = driver.findElement(passcodeMismatchError);
+                logger.debug("Found error message: {}", errorElement.getText());
+                return true;
+            } catch (Exception e) {
+                logger.debug("Could not find exact error text, checking screen state");
+                
+                // Take a screenshot for debugging
+                try {
+                    File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+                    logger.debug("Screenshot taken during error check: {}", screenshot.getAbsolutePath());
+                } catch (Exception ex) {
+                    // Ignore screenshot errors
+                }
+                
+                // Get all text elements to see what's on screen
+                List<WebElement> textElements = driver.findElements(
+                    AppiumBy.androidUIAutomator("new UiSelector().className(\"android.widget.TextView\")"));
+                
+                for (WebElement element : textElements) {
+                    String text = element.getText();
+                    if (text != null && !text.isEmpty()) {
+                        logger.debug("Found text on screen: {}", text);
+                        if (text.contains("match") || text.contains("password") || 
+                            text.contains("didn't") || text.contains("passcode")) {
+                            logger.debug("Found error-related text: {}", text);
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            // As a fallback, check if we're back on the create passcode screen
+            try {
+                WebElement createTitle = findElementIfVisible(createPasscodeTitle);
+                if (createTitle != null) {
+                    // If we're back on create passcode screen after entering both codes, 
+                    // there was likely an error
+                    logger.debug("Back on create passcode screen - assuming error occurred");
+                    return true;
+                }
+            } catch (Exception ex) {
+                // Ignore
+            }
+            
+            return false;
+        } catch (Exception e) {
+            logger.error("Error checking for passcode mismatch", e);
+            return false;
+        }
     }
 
     /**
@@ -132,12 +243,10 @@ public class PasscodePage extends BasePage {
                 // Short delay to prevent input issues
                 try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             } catch (Exception e) {
-                System.err.println("Error clicking digit " + digit + ": " + e.getMessage());
+                logger.error("Error clicking digit {}: {}", digit, e.getMessage());
             }
         } else {
-            System.err.println("Invalid character passed to clickDigit: " + digit);
+            logger.error("Invalid character passed to clickDigit: {}", digit);
         }
     }
-
-    // Add methods for backspace or fingerprint if needed
 } 

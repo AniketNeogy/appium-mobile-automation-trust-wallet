@@ -16,10 +16,12 @@ From the Automation scope defined in `test-coverage-summary.md`, the following t
 1.  **TC-SP-01**: Create Secret Phrase Wallet (core happy path).
 2.  **TC-GEN-01**: Passcode Mismatch validation.
 3.  **TC-SK-03**: Swift Safety Tips Not Acknowledged validation.
+4.  **TC-SK-02**: Swift Quiz Incorrect Answer validation.
+5.  **TC-SK-03**: Swift Safety Tips Not Acknowledged validation.
 
 **Rationale for Selection:**
 -   **High Value & Critical Path:** Covering the primary Secret Phrase happy path (TC-SP-01) is essential.
--   **Feasibility & Stability:** Prioritizing validation logic (TC-GEN-01, TC-SK-03) yields more stable automation. The full Swift creation flow (TC-SK-01) and Swift Quiz validation (TC-SK-02) are currently excluded due to observed difficulties with system-level passkey prompts and quiz interactions on emulators.
+-   **Feasibility & Stability:** Prioritizing validation logic (TC-GEN-01, TC-SK-02, TC-SK-03) and flows less dependent on external/OS interactions yields more stable automation.
 -   **Regression Potential:** Core paths and validations are prone to regression.
 -   **ROI:** Automating these frees up manual effort for potentially unstable flows and complex backup/recovery tests.
 
@@ -196,12 +198,22 @@ This framework includes the following enhancements to the original sample:
      ```
    - Run specific test class:
      ```
-     mvn clean test -Dtest=CreateWalletTest
+     mvn clean test -Dtest=CreateWalletTest -DplatformName=Android
      ```
-   - Run with custom TestNG XML:
+   - Run specific test method:
+     ```
+     mvn clean test -Dtest=CreateWalletTest#testCreateSecretPhraseWallet -DplatformName=Android
+     ```
+   - Run with specific platform (Android/iOS):
+     ```
+     mvn clean test -DplatformName=Android
+     ```
+   - Run tests with custom TestNG XML:
      ```
      mvn clean test -DsuiteXmlFile=testng.xml
      ```
+
+   > **Note:** When running specific tests with `-Dtest=`, you must always include `-DplatformName=Android` parameter, as it's required by the BaseTest setup method but not automatically passed when bypassing the TestNG XML configuration.
 
 ### Appium Inspector Configuration
 
@@ -240,11 +252,3 @@ After test execution, you can find test reports in:
 -   Page Object Model, Cross-platform base, TestNG, Maven, Log4j2, Screenshot on failure.
 -   Separate concerns, use explicit waits, descriptive logging, parameterize configs.
 
-## Troubleshooting
-
-### Common Issues
-
-- **Connection refused to Appium server**: Ensure Appium server is running on the correct port
-- **Device not found**: Check that your Android device is connected and detected with `adb devices`
-- **APK installation failed**: Make sure the APK is placed in the correct location and is not corrupted
-- **File too large for Git**: Trust Wallet APK exceeds GitHub's file size limit - follow the setup instructions to handle this

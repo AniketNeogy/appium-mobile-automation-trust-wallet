@@ -6,8 +6,11 @@ import io.appium.java_client.AppiumDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.NoSuchElementException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class WalletHomePage extends BasePage {
+    private static final Logger logger = LogManager.getLogger(WalletHomePage.class);
 
     // Locators
     private final By walletNameText = AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"topBarWalletName\")");
@@ -25,8 +28,15 @@ public class WalletHomePage extends BasePage {
     private final By earnNavButton = AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"EarnNavigationButton\")");
     private final By discoverNavButton = AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"DiscoverNavigationButton\")");
 
+    // What's New popup locators
+    private final By whatsNewTitle = AppiumBy.androidUIAutomator("new UiSelector().text(\"What's New\")");
+    private final By getStartedButton = AppiumBy.androidUIAutomator("new UiSelector().text(\"GET STARTED\")");
+
     public WalletHomePage(AppiumDriver driver) {
         super(driver);
+        logger.debug("WalletHomePage initialized");
+        // Check for and dismiss the "What's New" popup if it appears
+        dismissWhatsNewPopupIfPresent();
     }
 
     /**
@@ -38,29 +48,30 @@ public class WalletHomePage extends BasePage {
     public boolean isPageDisplayed() {
         try {
             if (isElementPresent(walletEmptyText)) {
-                System.out.println("Detected wallet home page (empty wallet view)");
+                logger.debug("Detected wallet home page (empty wallet view)");
                 return true;
             }
 
             if (isElementPresent(cryptoTab) || isElementPresent(nftsTab)) {
-                System.out.println("Detected wallet home page (crypto/NFT tabs)");
+                logger.debug("Detected wallet home page (crypto/NFT tabs)");
                 return true;
             }
 
             if (isElementPresent(sendButton) || isElementPresent(receiveButton) || 
                 isElementPresent(buyButton) || isElementPresent(sellButton)) {
-                System.out.println("Detected wallet home page (action buttons)");
+                logger.debug("Detected wallet home page (action buttons)");
                 return true;
             }
 
             if (isElementPresent(homeNavButton)) {
-                System.out.println("Detected wallet home page (bottom navigation)");
+                logger.debug("Detected wallet home page (bottom navigation)");
                 return true;
             }
             
+            logger.debug("Wallet home page not detected");
             return false;
         } catch (Exception e) {
-            System.err.println("Error while checking if wallet home page is displayed: " + e.getMessage());
+            logger.error("Error while checking if wallet home page is displayed", e);
             return false;
         }
     }
@@ -71,6 +82,7 @@ public class WalletHomePage extends BasePage {
      * @return The wallet name string.
      */
     public String getWalletName() {
+        logger.debug("Getting wallet name");
         return getText(walletNameText);
     }
 
@@ -80,7 +92,7 @@ public class WalletHomePage extends BasePage {
      * @return A new instance of ManageWalletsPage.
      */
     public ManageWalletsPage clickWalletName() {
-        System.out.println("Clicking wallet name to open Manage Wallets page...");
+        logger.info("Clicking wallet name to open Manage Wallets page");
         click(waitForElementToBeClickable(walletNameText));
         return new ManageWalletsPage(driver);
     }
@@ -91,6 +103,7 @@ public class WalletHomePage extends BasePage {
      * @return The balance string (e.g., "$0.00").
      */
     public String getMainBalance() {
+        logger.debug("Getting main balance");
         return getText(mainBalanceText);
     }
 
@@ -100,6 +113,7 @@ public class WalletHomePage extends BasePage {
      * @return true if the empty text is visible, false otherwise.
      */
     public boolean isWalletEmptyMessageDisplayed() {
+        logger.debug("Checking if wallet empty message is displayed");
         return isElementPresent(walletEmptyText);
     }
 
@@ -111,8 +125,34 @@ public class WalletHomePage extends BasePage {
             WebElement element = waitForElementToBeVisible(driver.findElement(locator));
             return element.getText();
         } catch (NoSuchElementException e) {
-            System.err.println("Element not found for locator: " + locator);
+            logger.error("Element not found for locator: {}", locator);
             return "";
+        }
+    }
+
+    /**
+     * Checks for and dismisses the "What's New" survey popup that appears intermittently
+     * after creating a wallet.
+     */
+    public void dismissWhatsNewPopupIfPresent() {
+        try {
+            // Wait a short time for the popup to appear (if it's going to)
+            Thread.sleep(2000);
+            
+            // Check if the popup is present
+            if (isElementPresent(whatsNewTitle)) {
+                logger.info("\"What's New\" popup detected. Dismissing it");
+                
+                // Click the GET STARTED button to dismiss the popup
+                WebElement startButton = driver.findElement(getStartedButton);
+                click(startButton);
+                logger.debug("Successfully dismissed the \"What's New\" popup");
+                
+                // Wait for the popup to be dismissed
+                Thread.sleep(1000);
+            }
+        } catch (Exception e) {
+            logger.debug("No \"What's New\" popup detected or error dismissing it: {}", e.getMessage());
         }
     }
 } 

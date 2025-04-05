@@ -6,7 +6,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Parameters;
-import com.trustwallet.automation.utils.TestListener; // Assuming TestListener path
+import com.trustwallet.automation.utils.TestListener;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,6 +20,7 @@ public abstract class BaseTest {
 
     protected AppiumDriver driver;
     protected Properties props;
+    private static final Logger logger = LogManager.getLogger(BaseTest.class);
 
     @Parameters({"platformName"})
     @BeforeMethod
@@ -29,15 +32,17 @@ public abstract class BaseTest {
 
         // Use parameter from testng.xml if provided, otherwise use from config.properties
         String platform = platformName != null ? platformName : props.getProperty("platform.name", "Android");
+        logger.info("Setting up test on platform: {}", platform);
         
         // Initialize driver from BaseDriver
         BaseDriver baseDriver = new BaseDriver();
         driver = baseDriver.initializeDriver(platform);
+        logger.info("Driver initialized successfully");
 
         // Set implicit wait
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS); // Adjust timeout as needed
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
-        // Add driver to listener context (if listener needs it)
+        // Add driver to listener context
         TestListener.setDriver(driver);
     }
 
@@ -45,8 +50,8 @@ public abstract class BaseTest {
     public void tearDown() {
         if (driver != null) {
             driver.quit();
+            logger.info("Driver quit successfully");
         }
-         TestListener.setDriver(null); // Clear driver from listener
-        System.out.println("Driver quit successfully.");
+        TestListener.setDriver(null);
     }
 } 

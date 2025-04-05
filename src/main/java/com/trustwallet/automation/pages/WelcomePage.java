@@ -5,8 +5,11 @@ import io.appium.java_client.AppiumBy;
 import io.appium.java_client.AppiumDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class WelcomePage extends BasePage {
+    private static final Logger logger = LogManager.getLogger(WelcomePage.class);
 
     // Locators
     private final By createNewWalletButton = AppiumBy.androidUIAutomator(
@@ -16,6 +19,7 @@ public class WelcomePage extends BasePage {
 
     public WelcomePage(AppiumDriver driver) {
         super(driver);
+        logger.debug("WelcomePage initialized");
     }
 
     /**
@@ -27,8 +31,10 @@ public class WelcomePage extends BasePage {
     public boolean isPageDisplayed() {
         try {
             waitForElementToBeVisible(driver.findElement(createNewWalletButton));
+            logger.debug("Welcome page is displayed");
             return true;
         } catch (Exception e) {
+            logger.error("Welcome page is not displayed", e);
             return false;
         }
     }
@@ -39,6 +45,7 @@ public class WelcomePage extends BasePage {
      * @return A new instance of the PasscodePage.
      */
     public PasscodePage clickCreateNewWallet() {
+        logger.info("Clicking 'Create new wallet' button");
         click(driver.findElement(createNewWalletButton));
         return new PasscodePage(driver);
     }
@@ -49,8 +56,9 @@ public class WelcomePage extends BasePage {
      * @return A new instance of the ImportWalletPage (not implemented).
      */
     public Object clickImportWallet() {
+        logger.info("Clicking 'I already have a wallet' button");
         click(driver.findElement(importWalletButton));
-        System.out.println("Warning: ImportWalletPage not implemented. Returning null.");
+        logger.warn("ImportWalletPage not implemented. Returning null.");
         return null;
     }
 } 
