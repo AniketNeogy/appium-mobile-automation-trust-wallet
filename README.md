@@ -287,10 +287,22 @@ Below are screenshots showing how the Extent Reports look:
 
 <div align="left">
     <p><strong>Dashboard View</strong></p>
-    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_44_54.png" width="400px"</img>
+    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_44_54.png" width="700px" />
 </div>
 <br/>
 <div align="left">
     <p><strong>Test Details View</strong></p>
-    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_45_02.png" width="400px"</img>
+    <img src="artefacts/screencapture-ExtentReport-html-2025-04-06-02_45_02.png" width="700px" />
 </div>
+
+## Creating New Tests (For Create Wallet Flow)
+
+1.  Create Page Objects for Create Wallet screens (e.g., `WelcomePage`, `PasscodePage`, `CreateOptionsPage`, `SwiftQuizPage`, `WalletHomePage`).
+2.  Create TestNG test classes (e.g., `CreateWalletTest`).
+3.  Implement `@Test` methods for automation candidates.
+4.  Add new test classes to `testng.xml`.
+
+## Framework Features & Best Practices
+
+-   Page Object Model, Cross-platform base, TestNG, Maven, Log4j2, Screenshot on failure.
+-   Separate concerns, use explicit waits, descriptive logging, parameterize configs.
