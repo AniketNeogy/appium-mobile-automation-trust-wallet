@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Trust Wallet Automation Suite">
+    <parameter name="platformName" value="Android"/>
+    <test name="Android Tests">
+        <classes>
+            <class name="com.trustwallet.automation.tests.CreateWalletTest"/>
+        </classes>
+    </test>
+</suite> 

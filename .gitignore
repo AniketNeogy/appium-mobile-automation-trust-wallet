@@ -19,6 +19,35 @@
 *.tar.gz
 *.rar
 
+# APK files
+*.apk
+apk/
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# IDE files
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Build directories
+target/
+build/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Screenshots
+screenshots/
+
+# Screenshots
+screen_*.png
+failure_screenshots/*
+failure*.png
+window_dump.xml
+*.png 
