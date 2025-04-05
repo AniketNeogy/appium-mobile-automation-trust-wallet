@@ -3,176 +3,195 @@ package com.trustwallet.automation.pages;
 import com.trustwallet.automation.base.BasePage;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.AppiumDriver;
-import io.appium.java_client.android.nativekey.AndroidKey;
-import io.appium.java_client.android.nativekey.KeyEvent;
-import io.appium.java_client.android.AndroidDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.NoSuchElementException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SetWalletNamePage extends BasePage {
+    private static final Logger logger = LogManager.getLogger(SetWalletNamePage.class);
 
     // Locators
-    private String textUiSelector = "new UiSelector().text(\"%s\")";
-    private String resourceIdUiSelector = "new UiSelector().resourceId(\"com.wallet.crypto.trustapp:id/%s\")";
-    private String descriptionUiSelector = "new UiSelector().description(\"%s\")";
-    private String pageTitleUiSelector = "new UiSelector().className(\"android.view.View\").description(\"Back\").xpath(\"./ancestor::*[contains(@resource-id, \'toolbar\')]/android.widget.TextView[1]\")";
-    private final By backButton = AppiumBy.androidUIAutomator(String.format(descriptionUiSelector, "Back"));
-    private final By walletNameField = AppiumBy.androidUIAutomator(String.format(resourceIdUiSelector, "walletNameField"));
-    private final By clearNameButton = AppiumBy.androidUIAutomator(
-            "new UiSelector().className(\"android.widget.EditText\").resourceIdMatches(\".*walletNameField\").childSelector(new UiSelector().className(\"android.view.View\"))");
-    private final By deleteWalletButton = AppiumBy.androidUIAutomator(String.format(resourceIdUiSelector, "deleteWalletButton"));
-    private final By googleDriveBackupRow = AppiumBy.androidUIAutomator(String.format(resourceIdUiSelector, "googleDriveBackupCell"));
-    private final By manualBackupRow = AppiumBy.androidUIAutomator(String.format(resourceIdUiSelector, "manualBackupCell"));
-    private final By googleDriveBackupStatus = AppiumBy.androidUIAutomator(
-             "new UiSelector().resourceId(\"com.wallet.crypto.trustapp:id/googleDriveBackupCell\").childSelector(new UiSelector().text(\"Back up now\"))");
-    private final By manualBackupStatus = AppiumBy.androidUIAutomator(
-             "new UiSelector().resourceId(\"com.wallet.crypto.trustapp:id/manualBackupCell\").childSelector(new UiSelector().textMatches(\"Back up now|Active\"))");
+    private final By pageTitle = AppiumBy.androidUIAutomator("new UiSelector().text(\"Set wallet name\")");
+    private final By backButton = AppiumBy.androidUIAutomator("new UiSelector().content-desc(\"Back\")");
+    private final By walletNameLabel = AppiumBy.androidUIAutomator("new UiSelector().text(\"Wallet name\")");
+    private final By walletNameInputField = AppiumBy.androidUIAutomator("new UiSelector().className(\"android.widget.EditText\")");
+    private final By helpText = AppiumBy.androidUIAutomator("new UiSelector().text(\"Wallet name should be between 4 to 24 characters\")");
+    private final By doneButton = AppiumBy.androidUIAutomator("new UiSelector().text(\"Done\")");
+    private final By clearInputIcon = AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"itemIcon\")");
 
+    /**
+     * Constructor for SetWalletNamePage.
+     *
+     * @param driver The AppiumDriver instance.
+     */
     public SetWalletNamePage(AppiumDriver driver) {
         super(driver);
+        logger.debug("SetWalletNamePage initialized");
     }
 
     /**
-     * Checks if the Set Wallet Name/Details page is displayed by verifying the presence
-     * of the wallet name input field and the delete button.
+     * Checks if the Set Wallet Name page is displayed by verifying the page title.
      *
-     * @return true if the page seems displayed, false otherwise.
+     * @return true if the page is displayed, false otherwise.
      */
     public boolean isPageDisplayed() {
-        return isElementPresent(walletNameField) && isElementPresent(deleteWalletButton);
+        try {
+            WebElement title = findElementIfVisible(pageTitle);
+            WebElement input = findElementIfVisible(walletNameInputField);
+            
+            boolean displayed = (title != null && input != null);
+            if (displayed) {
+                logger.debug("Set Wallet Name page is displayed");
+            } else {
+                logger.debug("Set Wallet Name page is not displayed");
+            }
+            return displayed;
+        } catch (NoSuchElementException e) {
+            logger.error("Failed to check if Set Wallet Name page is displayed", e);
+            return false;
+        }
     }
-
+    
+    /**
+     * Enters a wallet name in the input field.
+     *
+     * @param walletName The wallet name to enter.
+     * @return this SetWalletNamePage instance for method chaining.
+     */
+    public SetWalletNamePage enterWalletName(String walletName) {
+        logger.info("Entering wallet name: {}", walletName);
+        try {
+            WebElement inputField = waitForElementToBeClickable(walletNameInputField);
+            click(inputField);
+            sendKeys(inputField, walletName);
+            return this;
+        } catch (Exception e) {
+            logger.error("Failed to enter wallet name", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Clears the wallet name input field using the clear icon.
+     *
+     * @return this SetWalletNamePage instance for method chaining.
+     */
+    public SetWalletNamePage clearWalletName() {
+        logger.info("Clearing wallet name");
+        try {
+            // First check if there's any text entered (clear icon only appears when text exists)
+            if (isElementPresent(clearInputIcon)) {
+                WebElement clearIcon = waitForElementToBeClickable(clearInputIcon);
+                click(clearIcon);
+            } else {
+                // If no clear icon, just focus and clear the field
+                WebElement inputField = waitForElementToBeClickable(walletNameInputField);
+                click(inputField);
+                inputField.clear();
+            }
+            return this;
+        } catch (Exception e) {
+            logger.error("Failed to clear wallet name", e);
+            throw e;
+        }
+    }
+    
     /**
      * Gets the current wallet name from the input field.
      *
-     * @return The current wallet name.
+     * @return The wallet name text.
      */
-    public String getCurrentWalletName() {
-        return getText(walletNameField);
-    }
-
-    /**
-     * Clears the current wallet name using the clear button, with fallback to backspace.
-     */
-    public void clearWalletName() {
-        System.out.println("Clearing wallet name...");
+    public String getWalletName() {
+        logger.debug("Getting wallet name");
         try {
-            click(waitForElementToBeClickable(clearNameButton));
+            WebElement inputField = driver.findElement(walletNameInputField);
+            String walletName = inputField.getText();
+            if (walletName == null || walletName.isEmpty()) {
+                walletName = inputField.getAttribute("text");
+            }
+            logger.debug("Current wallet name: {}", walletName);
+            return walletName;
         } catch (Exception e) {
-             System.err.println("Clear button not found or failed to click. Attempting to clear via Backspace. Error: " + e.getMessage());
-             WebElement field = driver.findElement(walletNameField);
-             String currentName = field.getText();
-             if (currentName != null && !currentName.isEmpty()) {
-                 field.click();
-                 for (int i = 0; i < currentName.length(); i++) {
-                     if (driver instanceof AndroidDriver) {
-                         ((AndroidDriver) driver).pressKey(new KeyEvent(AndroidKey.DEL));
-                     } else {
-                         System.err.println("Driver is not an instance of AndroidDriver, cannot use pressKey method");
-                     }
-                     try { Thread.sleep(50); } catch (InterruptedException ignored) {}
-                 }
-             }
-        }
-    }
-
-    /**
-     * Sets a new wallet name after clearing the existing one.
-     *
-     * @param newName The desired wallet name.
-     */
-    public void setWalletName(String newName) {
-        System.out.println("Clearing and setting wallet name to: " + newName);
-        clearWalletName();
-        WebElement field = driver.findElement(walletNameField);
-        field.sendKeys(newName);
-    }
-
-    /**
-     * Clicks the Google Drive backup row.
-     *
-     * @return The next Page Object (e.g., GoogleDriveBackupPage - to be created).
-     */
-    public Object clickGoogleDriveBackup() {
-        System.out.println("Clicking Google Drive backup row...");
-        click(waitForElementToBeClickable(googleDriveBackupRow));
-        return null;
-    }
-
-    /**
-     * Clicks the Manual backup row.
-     *
-     * @return The next Page Object (e.g., BackupPromptPage - placeholder).
-     */
-    public Object clickManualBackup() {
-        System.out.println("Clicking Manual backup row...");
-        click(waitForElementToBeClickable(manualBackupRow));
-        return null;
-    }
-
-    /**
-     * Gets the status text displayed for Manual backup ("Back up now" or "Active").
-     *
-     * @return The status text, or empty string if not found.
-     */
-    public String getManualBackupStatus() {
-         return getTextFromElementIfExists(manualBackupStatus);
-    }
-
-    /**
-     * Gets the status text displayed for Google Drive backup ("Back up now").
-     *
-     * @return The status text, or empty string if not found.
-     */
-    public String getGoogleDriveBackupStatus() {
-        return getTextFromElementIfExists(googleDriveBackupStatus);
-    }
-
-    /**
-     * Clicks the Back button, saving the name change implicitly.
-     *
-     * @return A new instance of ManageWalletsPage.
-     */
-    public ManageWalletsPage clickBackButtonAndSaveChanges() {
-        System.out.println("Clicking Back button to save changes...");
-        click(waitForElementToBeClickable(backButton));
-        try { Thread.sleep(500); } catch (InterruptedException ignored) {}
-        return new ManageWalletsPage(driver);
-    }
-
-    /**
-     * Clicks the Delete Wallet button.
-     *
-     * @return The next Page Object (likely a confirmation dialog or ManageWalletsPage - needs verification).
-     */
-    public Object clickDeleteWallet() {
-        System.out.println("Clicking Delete Wallet button...");
-        click(waitForElementToBeClickable(deleteWalletButton));
-        return null;
-    }
-
-    /**
-     * Gets text from an element
-     */
-    private String getText(By locator) {
-        try {
-            WebElement element = waitForElementToBeVisible(driver.findElement(locator));
-            return element.getText();
-        } catch (NoSuchElementException e) {
-            System.err.println("Element not found for locator: " + locator);
+            logger.error("Failed to get wallet name", e);
             return "";
         }
     }
-
+    
     /**
-     * Gets text from an element if it exists
+     * Checks if the Done button is enabled.
+     *
+     * @return true if the button is enabled, false otherwise.
      */
-    private String getTextFromElementIfExists(By locator) {
+    public boolean isDoneButtonEnabled() {
         try {
-            WebElement element = driver.findElement(locator);
-            return element.getText();
-        } catch (NoSuchElementException e) {
+            // Find the button container view
+            WebElement buttonContainer = driver.findElement(By.xpath(
+                "//android.widget.TextView[@text='Done']/parent::android.view.View"));
+            
+            // Check the enabled attribute
+            String enabled = buttonContainer.getAttribute("enabled");
+            boolean isEnabled = Boolean.parseBoolean(enabled);
+            
+            logger.debug("Done button is enabled: {}", isEnabled);
+            return isEnabled;
+        } catch (Exception e) {
+            logger.error("Failed to check if Done button is enabled", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Clicks the Done button to proceed with creating the wallet.
+     * Note: This button is only enabled when a valid wallet name is entered.
+     *
+     * @return A new instance of WalletHomePage (assuming that's the next page).
+     */
+    public WalletHomePage clickDone() {
+        logger.info("Clicking Done button");
+        try {
+            if (!isDoneButtonEnabled()) {
+                logger.warn("Done button is not enabled. Check that a valid wallet name is entered.");
+            }
+            
+            WebElement button = waitForElementToBeClickable(doneButton);
+            click(button);
+            return new WalletHomePage(driver);
+        } catch (Exception e) {
+            logger.error("Failed to click Done button", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Clicks the back button to return to the previous page.
+     *
+     * @return A new instance of SwiftQuizPage.
+     */
+    public SwiftQuizPage clickBackButton() {
+        logger.info("Clicking back button");
+        try {
+            WebElement button = waitForElementToBeClickable(backButton);
+            click(button);
+            return new SwiftQuizPage(driver);
+        } catch (Exception e) {
+            logger.error("Failed to click back button", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Gets the help text for wallet name requirements.
+     *
+     * @return The help text string.
+     */
+    public String getHelpText() {
+        logger.debug("Getting help text");
+        try {
+            return getText(driver.findElement(helpText));
+        } catch (Exception e) {
+            logger.error("Failed to get help text", e);
             return "";
         }
     }

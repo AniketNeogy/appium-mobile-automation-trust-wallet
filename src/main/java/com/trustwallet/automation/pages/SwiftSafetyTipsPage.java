@@ -6,125 +6,243 @@ import io.appium.java_client.AppiumDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.NoSuchElementException;
-import java.util.List;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import java.time.Duration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SwiftSafetyTipsPage extends BasePage {
+    private static final Logger logger = LogManager.getLogger(SwiftSafetyTipsPage.class);
 
     // Locators
-    private String textUiSelector = "new UiSelector().text(\"%s\")";
-    private String descriptionUiSelector = "new UiSelector().description(\"%s\")";
-    private String resourceIdUiSelector = "new UiSelector().resourceId(\"com.wallet.crypto.trustapp:id/%s\")";
-    private String itemIconInstanceUiSelector = "new UiSelector().resourceId(\"com.wallet.crypto.trustapp:id/itemIcon\").instance(%d)";
-    private final By pageTitle = AppiumBy.androidUIAutomator(String.format(textUiSelector, "Safety tips"));
-    private final By backButton = AppiumBy.androidUIAutomator(String.format(descriptionUiSelector, "Back"));
-    private final By continueButton = AppiumBy.androidUIAutomator(String.format(textUiSelector, "Continue"));
-    private final By whatIsPasskeyLink = AppiumBy.androidUIAutomator(String.format(textUiSelector, "What is passkey?"));
-    private final By firstCheckboxIcon = AppiumBy.androidUIAutomator(String.format(itemIconInstanceUiSelector, 1));
-    private final By secondCheckboxIcon = AppiumBy.androidUIAutomator(String.format(itemIconInstanceUiSelector, 2));
-    private final By thirdCheckboxIcon = AppiumBy.androidUIAutomator(String.format(itemIconInstanceUiSelector, 3));
-    private final By firstCheckboxRow = AppiumBy.androidUIAutomator(
-            "new UiSelector().resourceId(\"com.wallet.crypto.trustapp:id/itemIcon\").instance(1).fromParent(new UiSelector().className(\"android.view.View\"))");
-    private final By secondCheckboxRow = AppiumBy.androidUIAutomator(
-            "new UiSelector().resourceId(\"com.wallet.crypto.trustapp:id/itemIcon\").instance(2).fromParent(new UiSelector().className(\"android.view.View\"))");
-    private final By thirdCheckboxRow = AppiumBy.androidUIAutomator(
-            "new UiSelector().resourceId(\"com.wallet.crypto.trustapp:id/itemIcon\").instance(3).fromParent(new UiSelector().className(\"android.view.View\"))");
+    private final By pageTitle = AppiumBy.androidUIAutomator("new UiSelector().text(\"Safety tips\")");
+    private final By backButton = AppiumBy.androidUIAutomator("new UiSelector().content-desc(\"Back\")");
+    
+    private final By mainTitle = AppiumBy.androidUIAutomator("new UiSelector().text(\"Passkey is the key to your wallet\")");
+    private final By instructionText = AppiumBy.androidUIAutomator("new UiSelector().text(\"Tap on all checkboxes to confirm you understand the importance of passkeys.\")");
+    
+    // Checkbox locators
+    private final By autoSyncCheckbox = AppiumBy.androidUIAutomator(
+            "new UiSelector().text(\"Once Swift wallet is created, passkey info (fingerprint, face recognition) will auto-sync on your Google account.\")");
+    
+    private final By recoveryCheckbox = AppiumBy.androidUIAutomator(
+            "new UiSelector().text(\"Passkeys allow you to recover the wallet in future, if your device is lost or replaced.\")");
+    
+    private final By importantWarningCheckbox = AppiumBy.androidUIAutomator(
+            "new UiSelector().text(\"IMPORTANT: If passkey is deleted, you will lose access to the wallet and all funds.\")");
+    
+    private final By continueButton = AppiumBy.androidUIAutomator(
+            "new UiSelector().text(\"Continue\")");
+    
+    private final By whatIsPasskeyLink = AppiumBy.androidUIAutomator(
+            "new UiSelector().text(\"What is passkey?\")");
 
+    /**
+     * Constructor for SwiftSafetyTipsPage.
+     *
+     * @param driver The AppiumDriver instance.
+     */
     public SwiftSafetyTipsPage(AppiumDriver driver) {
         super(driver);
+        logger.debug("SwiftSafetyTipsPage initialized");
     }
 
     /**
-     * Checks if the Safety Tips page is displayed by verifying the page title.
+     * Checks if the Swift Safety Tips page is displayed by verifying the page title.
      *
-     * @return true if the page title is visible, false otherwise.
+     * @return true if the page is displayed, false otherwise.
      */
     public boolean isPageDisplayed() {
         try {
-            waitForElementToBeVisible(driver.findElement(pageTitle));
-            return true;
-        } catch (Exception e) {
+            WebElement title = findElementIfVisible(pageTitle);
+            WebElement header = findElementIfVisible(mainTitle);
+            
+            boolean displayed = (title != null || header != null);
+            if (displayed) {
+                logger.debug("Swift Safety Tips page is displayed");
+            } else {
+                logger.debug("Swift Safety Tips page is not displayed");
+            }
+            return displayed;
+        } catch (NoSuchElementException e) {
+            logger.error("Failed to check if Swift Safety Tips page is displayed", e);
             return false;
         }
     }
-
+    
     /**
-     * Clicks the first safety tip checkbox/row.
-     */
-    public void clickFirstCheckbox() {
-        click(waitForElementToBeClickable(firstCheckboxRow));
-    }
-
-    /**
-     * Clicks the second safety tip checkbox/row.
-     */
-    public void clickSecondCheckbox() {
-        click(waitForElementToBeClickable(secondCheckboxRow));
-    }
-
-    /**
-     * Clicks the third safety tip checkbox/row.
-     */
-    public void clickThirdCheckbox() {
-        click(waitForElementToBeClickable(thirdCheckboxRow));
-    }
-
-    /**
-     * Clicks all three safety tip checkboxes.
-     */
-    public void clickAllCheckboxes() {
-        System.out.println("Clicking all safety checkboxes...");
-        clickFirstCheckbox();
-        clickSecondCheckbox();
-        clickThirdCheckbox();
-    }
-
-    /**
-     * Checks if the Continue button is enabled.
-     * NOTE: The XML shows enabled="false" initially. This check might need adjustment
-     * based on how the app updates the state after checking boxes.
+     * Checks if the Continue button is enabled (visually).
      *
      * @return true if the button is enabled, false otherwise.
      */
-     public boolean isContinueButtonEnabled() {
-         try {
-             WebElement button = driver.findElement(continueButton);
-             return Boolean.parseBoolean(button.getAttribute("enabled"));
-         } catch (NoSuchElementException e) {
-             return false;
-         }
-     }
-
-    /**
-     * Clicks the Continue button.
-     * Assumes the button becomes enabled after checking all boxes.
-     *
-     * @return A generic Object as we're not implementing the full flow.
-     */
-    public Object clickContinue() {
-        System.out.println("Clicking Continue button...");
-        WebElement button = waitForElementToBeClickable(continueButton);
-        click(button);
-        return null;
+    public boolean isContinueButtonEnabled() {
+        try {
+            WebElement button = driver.findElement(continueButton);
+            boolean isEnabled = button.isEnabled();
+            logger.debug("Continue button is enabled: {}", isEnabled);
+            return isEnabled;
+        } catch (Exception e) {
+            logger.error("Failed to check if Continue button is enabled", e);
+            return false;
+        }
     }
-
+    
+    /**
+     * Checks if the Continue button is actually clickable (not just visually enabled).
+     * This uses the WebDriverWait ExpectedConditions to verify the element is clickable.
+     *
+     * @return true if the button is clickable, false otherwise.
+     */
+    public boolean isContinueButtonClickable() {
+        try {
+            // Short timeout to quickly validate if element is clickable
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+            wait.until(ExpectedConditions.elementToBeClickable(continueButton));
+            logger.debug("Continue button is clickable");
+            return true;
+        } catch (Exception e) {
+            logger.debug("Continue button is not clickable: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Clicks the auto-sync checkbox.
+     *
+     * @return this SwiftSafetyTipsPage instance for method chaining.
+     */
+    public SwiftSafetyTipsPage clickAutoSyncCheckbox() {
+        logger.info("Clicking auto-sync checkbox");
+        try {
+            WebElement checkbox = waitForElementToBeClickable(autoSyncCheckbox);
+            click(checkbox);
+            return this;
+        } catch (Exception e) {
+            logger.error("Failed to click auto-sync checkbox", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Clicks the recovery checkbox.
+     *
+     * @return this SwiftSafetyTipsPage instance for method chaining.
+     */
+    public SwiftSafetyTipsPage clickRecoveryCheckbox() {
+        logger.info("Clicking recovery checkbox");
+        try {
+            WebElement checkbox = waitForElementToBeClickable(recoveryCheckbox);
+            click(checkbox);
+            return this;
+        } catch (Exception e) {
+            logger.error("Failed to click recovery checkbox", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Clicks the important warning checkbox.
+     *
+     * @return this SwiftSafetyTipsPage instance for method chaining.
+     */
+    public SwiftSafetyTipsPage clickImportantWarningCheckbox() {
+        logger.info("Clicking important warning checkbox");
+        try {
+            WebElement checkbox = waitForElementToBeClickable(importantWarningCheckbox);
+            click(checkbox);
+            return this;
+        } catch (Exception e) {
+            logger.error("Failed to click important warning checkbox", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Clicks all checkboxes in sequence.
+     *
+     * @return this SwiftSafetyTipsPage instance for method chaining.
+     */
+    public SwiftSafetyTipsPage clickAllCheckboxes() {
+        logger.info("Clicking all checkboxes");
+        try {
+            clickAutoSyncCheckbox();
+            clickRecoveryCheckbox();
+            clickImportantWarningCheckbox();
+            return this;
+        } catch (Exception e) {
+            logger.error("Failed to click all checkboxes", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Clicks the Continue button after accepting all safety tips.
+     * Make sure all checkboxes are checked before calling this method.
+     *
+     * @return A new instance of SwiftQuizPage.
+     */
+    public SwiftQuizPage clickContinue() {
+        logger.info("Clicking Continue button");
+        try {
+            if (!isContinueButtonClickable()) {
+                logger.warn("Continue button is not clickable. Ensure all checkboxes are checked.");
+                clickAllCheckboxes();
+            }
+            
+            WebElement button = waitForElementToBeClickable(continueButton);
+            click(button);
+            return new SwiftQuizPage(driver);
+        } catch (Exception e) {
+            logger.error("Failed to click Continue button", e);
+            throw e;
+        }
+    }
+    
     /**
      * Clicks the "What is passkey?" link.
-     * NOTE: This likely navigates outside the app (to a browser/webview).
-     * Handling this requires context switching, which is not implemented here.
-     */
-    public void clickWhatIsPasskey() {
-        System.out.println("Clicking 'What is passkey?' link...");
-        click(waitForElementToBeClickable(whatIsPasskeyLink));
-    }
-
-    /**
-     * Clicks the back button in the toolbar.
      *
-     * @return A new instance of ChoosePasskeyPage (adjust if navigation leads elsewhere).
+     * @return A new page object for the passkey information page (not implemented yet).
+     */
+    public SwiftSafetyTipsPage clickWhatIsPasskeyLink() {
+        logger.info("Clicking 'What is passkey?' link");
+        try {
+            WebElement link = waitForElementToBeClickable(whatIsPasskeyLink);
+            click(link);
+            // Note: Ideally we would return a new page object here, but for now we return the same page
+            logger.warn("'What is passkey?' page not implemented yet, returning to same page");
+            return this;
+        } catch (Exception e) {
+            logger.error("Failed to click 'What is passkey?' link", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Clicks the back button to return to the previous page.
+     *
+     * @return A new instance of ChoosePasskeyPage.
      */
     public ChoosePasskeyPage clickBackButton() {
-        System.out.println("Clicking the back button...");
-        click(waitForElementToBeClickable(backButton));
-        return new ChoosePasskeyPage(driver);
+        logger.info("Clicking back button");
+        try {
+            WebElement button = waitForElementToBeClickable(backButton);
+            click(button);
+            return new ChoosePasskeyPage(driver);
+        } catch (Exception e) {
+            logger.error("Failed to click back button", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Complete the safety tips page by checking all checkboxes and clicking continue.
+     *
+     * @return A new instance of SwiftQuizPage.
+     */
+    public SwiftQuizPage completeAllSafetyTips() {
+        logger.info("Completing all safety tips");
+        clickAllCheckboxes();
+        return clickContinue();
     }
 } 
