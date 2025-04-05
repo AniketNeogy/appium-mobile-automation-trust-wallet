@@ -51,4 +51,6 @@ failure_screenshots/*
 failure*.png
 window_dump.xml
 *.png 
+!artefacts/*.png
+!project-artefacts/*.png
 test-output/ExtentReport.html
